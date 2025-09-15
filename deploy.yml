@@ -1,0 +1,29 @@
+name: Deploy ASP.NET App to Windows Container
+
+on:
+  push:
+    branches:
+      - main   # change if you want a different branch
+
+jobs:
+  deploy:
+    runs-on: self-hosted   # uses your Windows GitHub runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t my-windows-app .
+
+      - name: Stop old container (if running)
+        shell: pwsh
+        run: |
+          $container = docker ps -q --filter "name=my-windows-app"
+          if ($container) {
+            docker stop $container
+            docker rm $container
+          }
+
+      - name: Run new container
+        run: docker run -d --name my-windows-app -p 8080:80 my-windows-app
